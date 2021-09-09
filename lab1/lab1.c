@@ -92,7 +92,6 @@ char *bint(uint32_t x)
 int array_add(uint32_t value, uint32_t **array, size_t *array_count)
 {
 	*array_count = *array_count + 1;
-
 	uint32_t *tmp_ptr = (uint32_t *)realloc(*array, *array_count * (sizeof(uint32_t)));
 	if (tmp_ptr == NULL)
 	{
@@ -118,7 +117,6 @@ int input_data_parser(const char *input_data, uint32_t **array, size_t *array_co
 
 	*array_count = 0;
 	*array = (uint32_t *)malloc(sizeof(uint32_t));
-
 	if (*array == NULL)
 	{
 		free(str);
@@ -253,6 +251,83 @@ int decode_fi0(char *input_str, uint32_t **array, size_t *array_size)
 	return 0;
 }
 
+int bin_str_to_bin(char *bin_str, uint32_t *array_pos)
+{
+	size_t str_len = strlen(bin_str);
+	int bit = 1;
+	for (int i = str_len-1; i >= 0; i--)
+	{
+		if  (bin_str[i] == '1')
+		{
+			*array_pos = *array_pos | bit;
+		}
+
+		bit = bit << 1;
+	}
+
+	return 0;
+}
+
+int decode_fi1(char *input_str, uint32_t **array, size_t *array_size)
+{
+	size_t str_len = strlen(input_str);
+	*array_size = 0;
+	uint32_t *output = (uint32_t*)malloc(sizeof(uint32_t));
+	if (output == NULL)
+	{
+		printf("<%s:%d> malloc failed!\n", __func__, __LINE__);
+		return -1;
+	}
+
+	char *bin_str = (char *)calloc(MAX_BIN_LEN, sizeof(char));
+	if (bin_str == NULL)
+	{
+		printf("<%s:%d> calloc failed!\n", __func__, __LINE__);
+		return -1;
+	}
+
+	int k = 0;
+	int bin_str_len =  0;
+	for (int i = 0; i < str_len; i++)
+	{
+		if (input_str[i] == '1')
+		{
+			*array_size = *array_size + 1;
+			uint32_t *tmp = (uint32_t*)realloc(output, *array_size * sizeof(uint32_t));
+			if (tmp == NULL)
+			{
+				printf("<%s:%d> realloc failed!\n", __func__, __LINE__);
+				return -1;
+			}
+
+			output = tmp;
+			for (int j = i; j < i+k; j++)
+			{
+				bin_str[bin_str_len] = input_str[j];
+				bin_str_len++;
+			}
+
+			output[*array_size - 1] = 0;
+			if (k == 0)
+				continue;
+			else
+				i = i + k - 1;
+
+			bin_str_to_bin(bin_str, &output[*array_size - 1]);
+			memset(bin_str, 0, sizeof(bin_str));
+			bin_str_len =  0;
+			k = 0;
+			continue;
+		}
+
+		k++;
+	}
+
+	*array = output;
+
+	return 0;
+}
+
 int main(int argc, char const *argv[])
 {
 	if (argc != 2)
@@ -324,11 +399,21 @@ int main(int argc, char const *argv[])
 		free(test4);
 	}
 
+	uint32_t *array_test1;
+	size_t array_count_test1;
+	decode_fi0("00010000101100001", &array_test1, &array_count_test1);
+	printf("decoded_fi0: ");
+	for (int i = 0; i < array_count_test1; ++i)
+	{
+		printf("%d ", array_test1[i]);
+	}
+	printf("\n");
+
 	uint32_t *array_test;
 	size_t array_count_test;
-	decode_fi0("00010000101100001", &array_test, &array_count_test);
+	decode_fi1("0001110010001111111100001010", &array_test, &array_count_test);
 
-	printf("decoded_fi0: ");
+	printf("decoded_fi1: ");
 	for (int i = 0; i < array_count_test; ++i)
 	{
 		printf("%d ", array_test[i]);
