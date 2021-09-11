@@ -328,6 +328,80 @@ int decode_fi1(char *input_str, uint32_t **array, size_t *array_size)
 	return 0;
 }
 
+int decode_fi2(char *input_str, uint32_t **array, size_t *array_size)
+{
+	size_t str_len = strlen(input_str);
+	*array_size = 0;
+	uint32_t *output = (uint32_t*)malloc(sizeof(uint32_t));
+	if (output == NULL)
+	{
+		printf("<%s:%d> malloc failed!\n", __func__, __LINE__);
+		return -1;
+	}
+
+	char *bin_str = (char *)calloc(MAX_BIN_LEN, sizeof(char));
+	if (bin_str == NULL)
+	{
+		printf("<%s:%d> calloc failed!\n", __func__, __LINE__);
+		return -1;
+	}
+
+	int k = 0;
+	int bin_str_len =  0;
+	for (int i = 0; i < str_len; i++)
+	{
+		if (input_str[i] == '1')
+		{
+			*array_size = *array_size + 1;
+			uint32_t *tmp = (uint32_t*)realloc(output, *array_size * sizeof(uint32_t));
+			if (tmp == NULL)
+			{
+				printf("<%s:%d> realloc failed!\n", __func__, __LINE__);
+				return -1;
+			}
+
+			output = tmp;
+			for (int j = i; j < i+k; j++)
+			{
+				bin_str[bin_str_len] = input_str[j];
+				bin_str_len++;
+			}
+
+			output[*array_size - 1] = 0;
+			if (k == 0)
+				continue;
+			else
+				i = i + k - 1;
+
+
+			uint32_t k1 = 0;
+			bin_str_to_bin(bin_str, &k1);
+			memset(bin_str, 0, sizeof(bin_str));
+			bin_str_len =  0;
+			k = 0;
+			bin_str[bin_str_len] = '1';
+			bin_str_len++;
+			for (int j = i+1; j < i+k1; j++)
+			{
+				bin_str[bin_str_len] = input_str[j];
+				bin_str_len++;
+			}
+
+			bin_str_to_bin(bin_str, &output[*array_size - 1]);
+			memset(bin_str, 0, sizeof(bin_str));
+			bin_str_len =  0;
+			i = i + k1 - 1;
+			continue;
+		}
+
+		k++;
+	}
+
+	*array = output;
+
+	return 0;
+}
+
 int main(int argc, char const *argv[])
 {
 	if (argc != 2)
@@ -417,6 +491,17 @@ int main(int argc, char const *argv[])
 	for (int i = 0; i < array_count_test; ++i)
 	{
 		printf("%d ", array_test[i]);
+	}
+	printf("\n");
+
+	uint32_t *array_test2;
+	size_t array_count_test2;
+	decode_fi2("0011010001111001100100110000101", &array_test2, &array_count_test2);
+
+	printf("decoded_fi2: ");
+	for (int i = 0; i < array_count_test2; ++i)
+	{
+		printf("%d ", array_test2[i]);
 	}
 	printf("\n");
 	free(array);
