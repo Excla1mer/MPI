@@ -100,6 +100,9 @@ int main(int argc, char const *argv[])
 	char *test2;
 	char *test3;
 	char *test4;
+	char code_buffer_fi0[2048] = "";
+	char code_buffer_fi1[2048] = "";
+	char code_buffer_fi2[2048] = "";
 
 	for (int i = 0; i < array_count; i++)
 	{
@@ -109,11 +112,19 @@ int main(int argc, char const *argv[])
 		printf("[%d]: bin\t%s\n", i, test);
 		test1 = bint(array[i]);
 		printf("[%d]: bint\t%s\n", i, test1);
+
+
 		test2 = fi0(array[i]);
+		strcat(code_buffer_fi0, test2);
 		printf("[%d]: fi0\t%s\n", i, test2);
+
+
 		test3 = fi1(array[i]);
+		strcat(code_buffer_fi1, test3);
 		printf("[%d]: fi1\t%s\n", i, test3);
+
 		test4 = fi2(array[i]);
+		strcat(code_buffer_fi2, test4);
 		printf("[%d]: fi2\t%s\n", i, test4);
 
 		free(test);
@@ -123,9 +134,10 @@ int main(int argc, char const *argv[])
 		free(test4);
 	}
 
+	printf("code_buffer_fi0: '%s'\n", code_buffer_fi0);
 	uint32_t *array_test1;
 	size_t array_count_test1;
-	decode_fi0("00010000101100001", &array_test1, &array_count_test1);
+	decode_fi0(code_buffer_fi0, &array_test1, &array_count_test1);
 	printf("decoded_fi0: ");
 	for (int i = 0; i < array_count_test1; ++i)
 	{
@@ -133,9 +145,10 @@ int main(int argc, char const *argv[])
 	}
 	printf("\n");
 
+	printf("code_buffer_fi1: '%s'\n", code_buffer_fi1);
 	uint32_t *array_test;
 	size_t array_count_test;
-	decode_fi1("0001110010001111111100001010", &array_test, &array_count_test);
+	decode_fi1(code_buffer_fi1, &array_test, &array_count_test);
 
 	printf("decoded_fi1: ");
 	for (int i = 0; i < array_count_test; ++i)
@@ -144,9 +157,10 @@ int main(int argc, char const *argv[])
 	}
 	printf("\n");
 
+	printf("code_buffer_fi2: '%s'\n", code_buffer_fi2);
 	uint32_t *array_test2;
 	size_t array_count_test2;
-	decode_fi2("010110010101101001100", &array_test2, &array_count_test2);
+	decode_fi2(code_buffer_fi2, &array_test2, &array_count_test2);
 
 	printf("decoded_fi2: ");
 	for (int i = 0; i < array_count_test2; ++i)
