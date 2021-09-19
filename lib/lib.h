@@ -7,11 +7,14 @@
 
 #define MAX_BIN_LEN 128
 #define BIT_32      0x80000000
+#define MAX_U_CHAR    255
 
 typedef struct ABC_s
 {
+	struct ABC_s *prev;
 	int  key;
-	char value;
+	uint8_t value;
+	struct ABC_s *next;
 } ABC_t;
 
 char *bin(uint32_t x);
@@ -30,6 +33,7 @@ int decode_fi1(char *input_str, uint32_t **array, size_t *array_size);
 int decode_fi2(char *input_str, uint32_t **array, size_t *array_size);
 
 ABC_t *abc_init(char *alphabet, size_t *size);
+ABC_t *abc_init_list();
 
 int get_key_from_val(ABC_t *abc, size_t size, char value);
 char get_val_from_key(ABC_t *abc, size_t size, int key);

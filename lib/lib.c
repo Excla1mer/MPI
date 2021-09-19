@@ -373,6 +373,40 @@ ABC_t *abc_init(char *alphabet, size_t *size)
 	return abc;
 }
 
+
+ABC_t *abc_init_list()
+{
+	ABC_t *abc = (ABC_t *)malloc(MAX_U_CHAR + 1);
+	if (abc == NULL)
+	{
+		printf("<%s:%d> malloc failed!", __func__, __LINE__);
+		return NULL;
+	}
+
+	for (unsigned char i = 0; i <= MAX_U_CHAR; ++i)
+	{
+		if (i == 0)
+		{
+			abc[i].prev = NULL;
+			abc[i].next = &abc[i+1];
+		}
+		else if (i == 256)
+		{
+			abc[i].prev = &abc[i-1];
+			abc[i].next = NULL;
+		}
+		else
+		{
+			abc[i].prev = &abc[i-1];
+			abc[i].next = &abc[i+1];
+		}
+
+		abc[i].value = i;
+	}
+
+	return abc;
+}
+
 int get_key_from_val(ABC_t *abc, size_t size, char value)
 {
 	for (int i = 0; i < size; ++i)

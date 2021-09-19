@@ -4,7 +4,7 @@ char *ABC = "abcdefghijklmnopqrstuvwxyz_";
 
 int main(int argc, char const *argv[])
 {
-	if (argc != 2)
+	/*if (argc != 2)
 	{
 		printf("<%s:%d> Wrong count of args\n", __func__, __LINE__);
 		return -1;
@@ -65,7 +65,15 @@ int main(int argc, char const *argv[])
 
 	printf("decoded_mtf_str: '%s'\n", decoded_mtf_str);
 	free(array);
-	free(array2);
+	free(array2);*/
+
+	size_t abc_count;
+	ABC_t *abc = abc_init_list();
+	if (abc == NULL)
+	{
+		printf("<%s:%d> abc_init failed!\n", __func__, __LINE__);
+		return -1;
+	}
 	
 	return 0;
 }
