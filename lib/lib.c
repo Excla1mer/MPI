@@ -168,9 +168,15 @@ char *fi2(uint32_t x)
 int bin_str_to_bin(char *bin_str, uint32_t *array_pos)
 {
 	size_t str_len = strlen(bin_str);
+	int max_uint = 32;
 	int bit = 1;
 	for (int i = str_len-1; i >= 0; i--)
 	{
+		if (max_uint < 0)
+		{
+			bin_str[i+1] = '\0';
+			break;
+		}
 		if  (bin_str[i] == '1')
 		{
 			*array_pos = *array_pos | bit;
@@ -376,39 +382,72 @@ ABC_t *abc_init(char *alphabet, size_t *size)
 
 ABC_t *abc_init_list()
 {
-	ABC_t *abc = (ABC_t *)malloc(MAX_U_CHAR + 1);
-	if (abc == NULL)
-	{
-		printf("<%s:%d> malloc failed!", __func__, __LINE__);
-		return NULL;
-	}
+	ABC_t *abc_head;
+	ABC_t *abc; 
 
-	for (unsigned char i = 0; i <= MAX_U_CHAR; ++i)
+	uint32_t i = 0;
+	while (1)
 	{
+		ABC_t *tmp = (ABC_t *)malloc(sizeof(ABC_t));
+		if (tmp == NULL)
+		{
+			printf("<%s:%d> malloc failed!", __func__, __LINE__);
+			return NULL;
+		}
+
 		if (i == 0)
 		{
-			abc[i].prev = NULL;
-			abc[i].next = &abc[i+1];
+			tmp->value = (uint8_t)i;
+			abc_head = tmp;
+			abc = abc_head;
 		}
-		else if (i == 256)
+		else if (i == 255)
 		{
-			abc[i].prev = &abc[i-1];
-			abc[i].next = NULL;
+			tmp->value = (uint8_t)i;
+			abc->next = tmp;
+			tmp->next = NULL;
+			break;
 		}
 		else
 		{
-			abc[i].prev = &abc[i-1];
-			abc[i].next = &abc[i+1];
+			tmp->value = (uint8_t)i;
+			abc->next = tmp;
+			abc = tmp;
 		}
 
-		abc[i].value = i;
-	}
+		i++;
+	} 
 
-	return abc;
+	return abc_head;
 }
 
-int get_key_from_val(ABC_t *abc, size_t size, char value)
+int abc_list_printf(ABC_t *abc_head, size_t count)
 {
+	for (int i = 0; i <= count; i++)
+	{
+		printf("{%d}[%p] value '%c' | next [%p]\n", i, abc_head, (char)abc_head->value, abc_head->next);
+		abc_head = abc_head->next;
+	}
+
+	return 0;
+}
+
+int get_key_from_val(ABC_t *abc, char value)
+{
+	int key = 0;
+	while (abc != NULL)
+	{
+		if (abc->value == (uint8_t)value)
+		{
+			return key;
+		}
+		else
+		{
+			abc = abc->next;
+			key++;
+		}
+	}
+/*
 	for (int i = 0; i < size; ++i)
 	{
 		if (abc[i].value == value)
@@ -416,28 +455,68 @@ int get_key_from_val(ABC_t *abc, size_t size, char value)
 			return abc[i].key;
 		}
 	}
-
+*/
 	printf("<%s:%d> Can't find value '%c' in alphabet", __func__, __LINE__, value);
 	return -1;
 }
 
-char get_val_from_key(ABC_t *abc, size_t size, int key)
+char get_val_from_key(ABC_t *abc, int key)
 {
+	int i = 0;
+	while (abc != NULL)
+	{
+		if (i == key)
+		{
+			return (char)abc->value;
+		}
+		else
+		{
+			abc = abc->next;
+			i++;
+		}
+	}
+	/*
 	for (int i = 0; i < size; ++i)
 	{
 		if (abc[i].key == key)
 		{
 			return abc[i].value;
 		}
-	}
+	}*/
 
 	printf("<%s:%d> Can't find key '%d' in alphabet", __func__, __LINE__, key);
 	return -1;
 }
 
-int abc_mtf_helper(ABC_t *abc, size_t size, char value)
+int abc_mtf_helper(ABC_t **abc, char value)
 {
-	int tmp_key = get_key_from_val(abc, size, value);
+	ABC_t *head = *abc;
+	ABC_t *tmp = *abc;
+	ABC_t *prev = NULL;
+
+	while (tmp != NULL)
+	{
+		if (tmp->value == (uint8_t)value)
+		{
+			if (prev != NULL)
+				prev->next = tmp->next;
+			else
+				return 0;
+
+			tmp->next = head;
+			*abc = tmp;
+
+			return 0;
+		}
+		else
+		{
+			prev = tmp;
+			tmp = tmp->next;
+		}
+	}
+
+	/*int tmp_key = get_key_from_val(abc, value);
+
 	for (int i = 0; i < size; ++i)
 	{
 		if (abc[i].value == value)
@@ -446,9 +525,9 @@ int abc_mtf_helper(ABC_t *abc, size_t size, char value)
 		}
 		else if (abc[i].key < tmp_key)
 			abc[i].key++;
-	}
+	}*/
 
-	return 0;
+	return -1;
 }
 
 void abc_print(ABC_t *abc, size_t size)
@@ -463,7 +542,7 @@ void abc_print(ABC_t *abc, size_t size)
 	return;
 }
 
-int abc_mtf(ABC_t *abc, size_t abc_size, const char *input_data, uint32_t **array, size_t *array_size)
+int abc_mtf(ABC_t **abc, const char *input_data, uint32_t **array, size_t *array_size)
 {
 	char tmp_char;
 	*array_size = strlen(input_data);
@@ -478,13 +557,13 @@ int abc_mtf(ABC_t *abc, size_t abc_size, const char *input_data, uint32_t **arra
 	{
 		tmp_char = input_data[i];
 
-		output[i] = get_key_from_val(abc, abc_size, tmp_char);
+		output[i] = get_key_from_val(*abc, tmp_char);
 		if (output[i] == -1)
 		{
 			printf("<%s:%d> get_key_from_val failed!", __func__, __LINE__);
 			return -1;
 		}
-		abc_mtf_helper(abc, abc_size, tmp_char);
+		abc_mtf_helper(abc, tmp_char);
 	}
 
 	*array = output;
@@ -492,7 +571,7 @@ int abc_mtf(ABC_t *abc, size_t abc_size, const char *input_data, uint32_t **arra
 	return 0;
 }
 
-char *decode_mtf(ABC_t *abc, size_t abc_size, uint32_t *array, size_t array_size)
+char *decode_mtf(ABC_t *abc, uint32_t *array, size_t array_size)
 {
 	char *output = (char *)malloc(sizeof(char) * array_size);
 	if (output == NULL)
@@ -503,8 +582,8 @@ char *decode_mtf(ABC_t *abc, size_t abc_size, uint32_t *array, size_t array_size
 
 	for (int i = 0; i < array_size; ++i)
 	{
-		output[i] = get_val_from_key(abc, abc_size, array[i]);
-		abc_mtf_helper(abc, abc_size, output[i]);
+		output[i] = get_val_from_key(abc, array[i]);
+		abc_mtf_helper(&abc, output[i]);
 	}
 
 	return output;

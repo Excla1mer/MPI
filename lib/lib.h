@@ -11,7 +11,6 @@
 
 typedef struct ABC_s
 {
-	struct ABC_s *prev;
 	int  key;
 	uint8_t value;
 	struct ABC_s *next;
@@ -34,12 +33,13 @@ int decode_fi2(char *input_str, uint32_t **array, size_t *array_size);
 
 ABC_t *abc_init(char *alphabet, size_t *size);
 ABC_t *abc_init_list();
+int abc_list_printf(ABC_t *abc_head, size_t count);
 
-int get_key_from_val(ABC_t *abc, size_t size, char value);
-char get_val_from_key(ABC_t *abc, size_t size, int key);
+int get_key_from_val(ABC_t *abc, char value);
+char get_val_from_key(ABC_t *abc, int key);
 
-int abc_mtf_helper(ABC_t *abc, size_t size, char value);
+int abc_mtf_helper(ABC_t **abc, char value);
 void abc_print(ABC_t *abc, size_t size);
-int abc_mtf(ABC_t *abc, size_t abc_size, const char *input_data, uint32_t **array, size_t *array_size);
+int abc_mtf(ABC_t **abc, const char *input_data, uint32_t **array, size_t *array_size);
 
-char *decode_mtf(ABC_t *abc, size_t abc_size, uint32_t *array, size_t array_size);
+char *decode_mtf(ABC_t *abc, uint32_t *array, size_t array_size);
