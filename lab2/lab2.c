@@ -19,11 +19,11 @@ int start_msg()
 	return tmp;
 }
 
-FILE *fr;
-FILE *fw;
-
-int main()
+int main(int argc, char const *argv[])
 {
+
+	FILE *fr;
+	FILE *fw;
 
 	int option;
 	char filename[255];
@@ -37,8 +37,6 @@ int main()
 		fr = fopen(filename, "rb");
 
 		strcpy(new_filename, filename);
-
-		
 
 		ABC_t *abc = abc_init_list();
 		if (abc == NULL)
@@ -96,7 +94,6 @@ int main()
 					}
 				}
 				// printf("Coded fi2: '%s'\n", code);
-				
 			}
 
 		}
@@ -150,7 +147,6 @@ int main()
 	// const char *input_data = argv[1];
 
 	// printf("input_data: '%s'\n", input_data);
-
 	/*size_t abc_count;
 	ABC_t *abc = abc_init(ABC, &abc_count);
 	if (abc == NULL)
@@ -217,8 +213,6 @@ int main()
 	// printf("decoded_mtf_str: '%s'\n", decoded_mtf_str);
 	// free(array);
 	// free(array2);
-
-	
 	
 	//abc_list_printf(abc, 255);
 }

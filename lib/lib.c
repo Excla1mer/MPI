@@ -174,6 +174,10 @@ int bin_str_to_bin(char *bin_str, uint32_t *array_pos)
 	{
 		if (max_uint < 0)
 		{
+<<<<<<< HEAD
+=======
+			bin_str[i+1] = '\0';
+>>>>>>> d84840323868be455c95e078a7fa644cefe855ab
 			break;
 		}
 		if  (bin_str[i] == '1')
