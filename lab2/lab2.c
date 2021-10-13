@@ -3,7 +3,9 @@
 char *ABC = "abcdefghijklmnopqrstuvwxyz_";
 int newline = '\n';
 
-#define BLOCK   4096
+#define FILENAME "test.txt_a" 
+
+#define BLOCK   1000
 #define ARCHIVE 1
 #define UNZIP   2
 
@@ -26,14 +28,14 @@ int main(int argc, char const *argv[])
 	FILE *fw;
 
 	int option;
-	char filename[255];
+	char filename[255] = FILENAME;
 	char new_filename[255];
 	char buffer[BLOCK+1] = "";
 	while (1)
 	{
 		option = start_msg();
-		printf("Enter file name: ");
-		scanf("%s", filename);
+		// printf("Enter file name: ");
+		// scanf("%s", filename);
 		fr = fopen(filename, "rb");
 
 		strcpy(new_filename, filename);
@@ -51,6 +53,10 @@ int main(int argc, char const *argv[])
 			fw = fopen(new_filename, "wb");
 
 			char code[512 * 8] = "1\0";
+			char *code_ptr = (char *)malloc(sizeof(char) * 512 * 100000);
+			memset(code_ptr, 0, sizeof(code_ptr));
+			code_ptr[0] = '1';
+
 			while (fgets(buffer, BLOCK, fr) != 0)
 			{
 				uint32_t *array;
@@ -68,23 +74,24 @@ int main(int argc, char const *argv[])
 				for (int i = 0; i < array_count; ++i)
 				{
 					tmp_ptr = fi2(array[i]);
-					strcat(code, tmp_ptr);
+					strcat(code_ptr, tmp_ptr);
 					free(tmp_ptr);
 				}
 
 				uint32_t code_uint32;
 				uint32_t code_uint32_b;
-				int code_size = strlen(code);
-				while (code_size > 0)
+				int code_size = strlen(code_ptr);
+				int res;
+				while (1)
 				{
 					code_uint32 = 0;
-					bin_str_to_bin(code, &code_uint32);
+					res = bin_str_to_bin(code_ptr, &code_uint32);
 					// code_uint32_b = htonl(code_uint32);
 					fwrite(&code_uint32, sizeof(uint32_t), 1, fw);
-					code_size = code_size - 32;
-					if (code_size > 0)
+
+					if (res == 0)
 					{
-						code[code_size] = '\0';
+						code_ptr = code_ptr + 32;
 					}
 					else
 					{
@@ -93,20 +100,23 @@ int main(int argc, char const *argv[])
 						break;
 					}
 				}
+				memset(code_ptr, 0, sizeof(code_ptr));
 				// printf("Coded fi2: '%s'\n", code);
 			}
+
+			printf("+++++++++++++++++++++++++++++++++++++++++++++\n");
 
 		}
 		else if (option == UNZIP)
 		{
-			char code[4096] = "";
+			char code[4096*50] = "";
 			char *tmp;
 			fw = fopen("UNZIP", "wb");
 			uint32_t buffer = 0;
 			// memset(&buffer, 0, sizeof(buffer));
 			while (fread(&buffer, sizeof(uint32_t), 1, fr) != 0)
 			{
-				tmp = bin(buffer);
+				tmp = bin(buffer, 0);
 				strcat(code, tmp);
 				buffer = 0;
 			}

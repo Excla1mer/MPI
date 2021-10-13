@@ -108,7 +108,7 @@ int main(int argc, char const *argv[])
 	{
 		printf("---------------------------\n");
 		printf("[%d]: int\t%d\n", i, array[i]);
-		test = bin(array[i]);
+		test = bin(array[i], 1);
 		printf("[%d]: bin\t%s\n", i, test);
 		test1 = bint(array[i]);
 		printf("[%d]: bint\t%s\n", i, test1);

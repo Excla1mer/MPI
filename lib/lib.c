@@ -1,6 +1,6 @@
 #include "lib.h"
 
-char *bin(uint32_t x)
+char *bin(uint32_t x, int no_full)
 {
 	char *output = (char *)malloc(MAX_BIN_LEN * sizeof(char));
 	if (output == NULL)
@@ -16,10 +16,13 @@ char *bin(uint32_t x)
 	}
 
 	int offset = 0;
-	while ((x & BIT_32) == 0)
+	if (no_full)
 	{
-		x = x << 1;
-		offset++;
+		while ((x & BIT_32) == 0)
+		{
+			x = x << 1;
+			offset++;
+		}
 	}
 
 	int bin_str_len = 0;
@@ -60,7 +63,7 @@ char *bint(uint32_t x)
 		return NULL;
 	}
 
-	tmp = bin(x);
+	tmp = bin(x, 1);
 	strcpy(output, tmp+1);
 	free(tmp);
 
@@ -121,7 +124,7 @@ char *fi1(uint32_t x)
 	char *bint_s;
 	bint_s = bint(x);
 	char *bin_s;
-	bin_s = bin(x);
+	bin_s = bin(x, 1);
 	char *fi0_s;
 	fi0_s = fi0(strlen(bin_s));
 
@@ -152,7 +155,7 @@ char *fi2(uint32_t x)
 	char *bint_s;
 	bint_s = bint(x);
 	char *bin_s;
-	bin_s = bin(x);
+	bin_s = bin(x, 1);
 	char *fi1_s;
 	fi1_s = fi1(strlen(bin_s));
 
@@ -165,30 +168,101 @@ char *fi2(uint32_t x)
 	return output;
 }
 
+// int bin_str_to_bin(char *bin_str, uint32_t *array_pos)
+// {
+// 	size_t str_len = strlen(bin_str);
+// 	int max_uint = 32;
+// 	int bit = 1;
+// 	for (int i = str_len-1; i >= 0; i--)
+// 	{
+// 		if (max_uint < 0)
+// 		{
+// 			//bin_str[i+1] = '\0';
+// 			break;
+// 		}
+// 		if  (bin_str[i] == '1')
+// 		{
+// 			*array_pos = *array_pos | bit;
+// 		}
+
+// 		bit = bit << 1;
+// 	}
+
+// 	return 0;
+// }
+
+int bin_str_to_bin_l(char *bin_str, uint32_t *array_pos)
+{
+	size_t str_len = strlen(bin_str);
+	int max_uint = 32;
+	uint32_t bit_l = 0x80000000;
+	uint32_t bit_r = 1;
+	int start;
+	int rc;
+
+	if (str_len > max_uint)
+	{
+		start = max_uint-1;
+		rc = 0;
+	}
+	else
+	{
+		start = str_len-1;
+		rc = 1;
+	}
+
+	for (int i = start; i >= 0; i--)
+	{
+		if  (bin_str[i] == '1')
+		{
+			*array_pos = *array_pos | bit_r;
+		}
+
+		bit_r = bit_r << 1;
+	}
+
+	return rc;
+}
+
 int bin_str_to_bin(char *bin_str, uint32_t *array_pos)
 {
 	size_t str_len = strlen(bin_str);
 	int max_uint = 32;
-	int bit = 1;
-	for (int i = str_len-1; i >= 0; i--)
+	uint32_t bit_l = 0x80000000;
+	uint32_t bit_r = 1;
+	int start;
+	int rc;
+
+	if (str_len > max_uint)
 	{
-		if (max_uint < 0)
+		for (int i = 0; i < max_uint; i++)
 		{
-<<<<<<< HEAD
-=======
-			bin_str[i+1] = '\0';
->>>>>>> d84840323868be455c95e078a7fa644cefe855ab
-			break;
-		}
-		if  (bin_str[i] == '1')
-		{
-			*array_pos = *array_pos | bit;
+			if (bin_str[i] == '1')
+			{
+				*array_pos = *array_pos | bit_l;
+			}
+
+			bit_l = bit_l >> 1;
 		}
 
-		bit = bit << 1;
+		rc = 0;
+	}
+	else
+	{
+		for (int i = 0; i < str_len; i++)
+		{
+			if (bin_str[i] == '1')
+			{
+				*array_pos = *array_pos | bit_l;
+			}
+
+			bit_l = bit_l >> 1;
+		}
+
+		rc = 1;
 	}
 
-	return 0;
+	return rc;
 }
 
 int decode_fi0(char *input_str, uint32_t **array, size_t *array_size)
@@ -336,7 +410,7 @@ int decode_fi2(char *input_str, uint32_t **array, size_t *array_size)
 
 
 			uint32_t k1 = 0;
-			bin_str_to_bin(bin_str, &k1);
+			bin_str_to_bin_l(bin_str, &k1);
 			memset(bin_str, 0, sizeof(bin_str));
 			bin_str_len =  0;
 			k = 0;
